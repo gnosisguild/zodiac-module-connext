@@ -77,7 +77,6 @@ contract ConnextModule is Module {
             (address, uint256, bytes, Enum.Operation)
         );
         if (!exec(_to, _value, _data, _operation)) revert ModuleTransactionFailed();
-        require(exec(_to, _value, _data, _operation), "Module transaction failed");
     }
 
     function setOriginAddress(address _originAddress) public onlyOwner {
