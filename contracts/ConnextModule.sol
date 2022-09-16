@@ -3,9 +3,9 @@ pragma solidity ^0.8.16;
 
 import "@gnosis.pm/zodiac/contracts/core/Module.sol";
 import "./interfaces/IExecutor.sol";
-import {LibCrossDomainProperty} from "./lib/LibCrossDomainProperty.sol";
+import {IXReceiver} from "./interfaces/IXReceiver.sol";
 
-contract ConnextModule is Module {
+contract ConnextModule is Module, IXReceiver {
     event ModuleSetUp(
         address owner,
         address avatar,
@@ -63,17 +63,30 @@ contract ConnextModule is Module {
         emit ModuleSetUp(owner(), avatar, target, originAddress, origin, executor);
     }
 
-    modifier onlyExecutor(bytes memory _message) {
+    modifier onlyExecutor(address _originSender, uint32 _origin) {
         if (msg.sender != executor) revert ExecutorOnly();
-        if (LibCrossDomainProperty.originSender(_message) != originAddress) revert OriginAddressOnly();
-        if (LibCrossDomainProperty.origin(_message) != origin) revert OriginOnly();
+        if (_originSender != originAddress) revert OriginAddressOnly();
+        if (_origin != origin) revert OriginOnly();
         _;
     }
 
-    function execute(bytes calldata _message) external onlyExecutor(_message) {
-        uint256 length = LibCrossDomainProperty.callDataLength(bytes29(_message));
+    function xReceive(
+        bytes32 _transferId,
+        uint256 _amount,
+        address _asset,
+        address _originSender,
+        uint32 _origin,
+        bytes memory _callData
+    ) 
+        external onlyExecutor(_originSender, _origin)
+        returns (bytes memory) {
+            _execute(_callData);
+        
+    }
+
+    function _execute(bytes calldata _message) internal {
         (address _to, uint256 _value, bytes memory _data, Enum.Operation _operation) = abi.decode(
-            bytes(_message[0:length]),
+            _message,
             (address, uint256, bytes, Enum.Operation)
         );
         if (!exec(_to, _value, _data, _operation)) revert ModuleTransactionFailed();
