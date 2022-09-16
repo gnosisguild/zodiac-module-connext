@@ -105,4 +105,9 @@ contract ConnextModule is Module, IXReceiver {
         connext = _connext;
         emit ConnextSet(connext);
     }
+
+    function setOrigin(uint32 _origin) public onlyOwner {
+        origin = _origin;
+        emit OriginSet(origin);
+    }
 }
