@@ -2,30 +2,33 @@
 pragma solidity ^0.8.16;
 
 import "@gnosis.pm/zodiac/contracts/core/Module.sol";
-import "./interfaces/IExecutor.sol";
-import {LibCrossDomainProperty} from "./lib/LibCrossDomainProperty.sol";
+import {IXReceiver} from "./interfaces/IXReceiver.sol";
 
-contract ConnextModule is Module {
+contract ConnextModule is Module, IXReceiver {
     event ModuleSetUp(
         address owner,
         address avatar,
         address target,
         address originAddress,
         uint32 origin,
-        address executor
+        address connext
     );
     event OriginAddressSet(address originAddress);
     event OriginSet(uint32 origin);
-    event ExecutorSet(address executor);
+    event ConnextSet(address connext);
 
-    error ExecutorOnly();
+    error ConnextOnly();
     error ModuleTransactionFailed();
     error OriginAddressOnly();
     error OriginOnly();
 
-    address public executor;
+    // The ConnextHandler contract on this domain
+    address public connext;
+
+    // Address of the sender from origin;
     address public originAddress;
 
+    // Origin Domain ID
     uint32 public origin;
 
     constructor(
@@ -34,9 +37,9 @@ contract ConnextModule is Module {
         address _target,
         address _originAddress,
         uint32 _origin,
-        address _executor
+        address _connext
     ) {
-        bytes memory initializeParams = abi.encode(_owner, _avatar, _target, _originAddress, _origin, _executor);
+        bytes memory initializeParams = abi.encode(_owner, _avatar, _target, _originAddress, _origin, _connext);
         setUp(initializeParams);
     }
 
@@ -50,47 +53,61 @@ contract ConnextModule is Module {
             address _target,
             address _originAddress,
             uint32 _origin,
-            address _executor
+            address _connext
         ) = abi.decode(initializeParams, (address, address, address, address, uint32, address));
 
         setAvatar(_avatar);
         setTarget(_target);
         setOriginAddress(_originAddress);
         setOrigin(_origin);
-        setExecutor(_executor);
+        setConnext(_connext);
         transferOwnership(_owner);
 
-        emit ModuleSetUp(owner(), avatar, target, originAddress, origin, executor);
+        emit ModuleSetUp(owner(), avatar, target, originAddress, origin, connext);
     }
 
-    modifier onlyExecutor(bytes memory _message) {
-        if (msg.sender != executor) revert ExecutorOnly();
-        if (LibCrossDomainProperty.originSender(_message) != originAddress) revert OriginAddressOnly();
-        if (LibCrossDomainProperty.origin(_message) != origin) revert OriginOnly();
+    modifier onlyConnext(address _originSender, uint32 _origin) {
+        if (msg.sender != connext) revert ConnextOnly();
+        if (_originSender != originAddress) revert OriginAddressOnly();
+        if (_origin != origin) revert OriginOnly();
         _;
     }
 
-    function execute(bytes calldata _message) external onlyExecutor(_message) {
-        uint256 length = LibCrossDomainProperty.callDataLength(bytes29(_message));
+    function xReceive(
+        bytes32 _transferId,
+        uint256 _amount,
+        address _asset,
+        address _originSender,
+        uint32 _origin,
+        bytes memory _callData
+    ) 
+        external onlyConnext(_originSender, _origin)
+        returns (bytes memory) {
+            _execute(_callData);
+        
+    }
+
+    function _execute(bytes calldata _message) internal {
         (address _to, uint256 _value, bytes memory _data, Enum.Operation _operation) = abi.decode(
-            bytes(_message[0:length]),
+            _message,
             (address, uint256, bytes, Enum.Operation)
         );
         if (!exec(_to, _value, _data, _operation)) revert ModuleTransactionFailed();
     }
 
     function setOriginAddress(address _originAddress) public onlyOwner {
+        require(_originAddress != address(0), "Sender should not be address(0)");
         originAddress = _originAddress;
         emit OriginAddressSet(originAddress);
+    }
+
+    function setConnext(address _connext) public onlyOwner {
+        connext = _connext;
+        emit ConnextSet(connext);
     }
 
     function setOrigin(uint32 _origin) public onlyOwner {
         origin = _origin;
         emit OriginSet(origin);
-    }
-
-    function setExecutor(address _executor) public onlyOwner {
-        executor = _executor;
-        emit ExecutorSet(executor);
     }
 }
