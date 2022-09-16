@@ -96,6 +96,7 @@ contract ConnextModule is Module, IXReceiver {
     }
 
     function setOriginAddress(address _originAddress) public onlyOwner {
+        require(_originAddress != address(0), "Sender should not be address(0)");
         originAddress = _originAddress;
         emit OriginAddressSet(originAddress);
     }
