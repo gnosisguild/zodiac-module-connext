@@ -2,21 +2,21 @@ import { expect } from "chai"
 import { ethers, deployments, getNamedAccounts } from "hardhat"
 
 const setup = async () => {
-  await deployments.fixture(["MyModule"])
+  await deployments.fixture(["ConnextModule"])
   const { tester } = await getNamedAccounts()
   const testSigner = await ethers.getSigner(tester)
   const buttonDeployment = await deployments.get("Button")
-  const myModuleDeployment = await deployments.get("MyModule")
+  const connextModuleDeployment = await deployments.get("ConnetModule")
   const buttonContract = await ethers.getContractAt("Button", buttonDeployment.address, testSigner)
-  const myModuleContract = await ethers.getContractAt("MyModule", myModuleDeployment.address, testSigner)
-  return { buttonContract, myModuleContract }
+  const connextModuleContract = await ethers.getContractAt("MyModule", connextModuleDeployment.address, testSigner)
+  return { buttonContract, connextModuleContract }
 }
 
-describe("MyModule", function () {
-  it("Should be possible to 'press the button' through MyModule", async function () {
-    const { buttonContract, myModuleContract } = await setup()
+describe("ConnextModule", function () {
+  it("Should be possible to update greeter through ConnextModule", async function () {
+    const { buttonContract, connextModuleContract } = await setup()
     expect(await buttonContract.pushes()).to.equal(0)
-    await myModuleContract.pushButton()
+    await connextModuleContract.pushButton()
     expect(await buttonContract.pushes()).to.equal(1)
   })
   it("Should NOT be possible to 'press the button' directly on the Button contract", async function () {
