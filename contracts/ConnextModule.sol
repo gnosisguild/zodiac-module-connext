@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "@gnosis.pm/zodiac/contracts/core/Module.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IXReceiver} from "./interfaces/IXReceiver.sol";
 
 contract ConnextModule is Module, IXReceiver {
