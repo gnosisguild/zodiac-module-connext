@@ -37,7 +37,7 @@ const setup = async () => {
   return { button, connextModule, avatar, token, params, testSigner }
 }
 
-describe("Button", function () {
+describe("Button.push()", function () {
   it("Should be pushable", async function () {
     const { button } = await setup()
     expect(await button.pushes()).to.equal(0)
@@ -54,7 +54,7 @@ describe("Button", function () {
   })
 })
 
-describe("ConnextModule", function () {
+describe("ConnextModule.xReceive()", function () {
   it("Should successfully transfer token balance to avatar and tell avatar to push button", async function () {
     const { avatar, button, connextModule, testSigner, token } = await setup()
 
@@ -92,4 +92,44 @@ describe("ConnextModule", function () {
     // check that tokens have been transferred to the avatar.
     expect(await token.balanceOf(avatar.address)).to.equal(1000)
   })
+  it("Should revert if origin is incorrect")
+  it("Should revert if originSender is incorrect")
+  it("Should revert if called by account other than connext")
+  it("Should revert if token balance is less than _amount")
+  it("Should revert if module transaction fails")
+})
+
+describe("ConnextModule.setOriginAddress()", function () {
+  it("Should revert if origin is incorrect")
+  it("Should revert if originSender is incorrect")
+  it("Should revert if called by account other than connext")
+  it("Should set origin address")
+  it("Should emit OriginAddressSet() event with correct params")
+})
+
+describe("ConnextModule.setOrigin()", function () {
+  it("Should revert if origin is incorrect")
+  it("Should revert if originSender is incorrect")
+  it("Should revert if called by account other than connext")
+  it("Should set origin")
+  it("Should emit OriginSet() event with correct params")
+})
+
+describe("ConnextModule.setConnext()", function () {
+  it("Should revert if origin is incorrect")
+  it("Should revert if originSender is incorrect")
+  it("Should revert if called by account other than connext")
+  it("Should set connext address")
+  it("Should emit ConnextSet() event with correct params")
+})
+
+describe("connextModule.constructor()", function () {
+  it("Should setup correct state")
+  it("Should emit ModuleSetUp() event with correct params")
+})
+
+describe("ConnextModule.setUp()", function () {
+  it("Should initialize proxy with correct state")
+  it("Should emit ModuleSetUp() event with correct params")
+  it("Should revert if called more than once")
 })
