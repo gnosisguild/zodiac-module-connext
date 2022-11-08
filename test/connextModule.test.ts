@@ -92,11 +92,135 @@ describe("ConnextModule.xReceive()", function () {
     // check that tokens have been transferred to the avatar.
     expect(await token.balanceOf(avatar.address)).to.equal(1000)
   })
-  it("Should revert if origin is incorrect")
-  it("Should revert if originSender is incorrect")
-  it("Should revert if called by account other than connext")
-  it("Should revert if token balance is less than _amount")
-  it("Should revert if module transaction fails")
+
+  it("Should revert if origin is incorrect", async function () {
+    const { button, connextModule, testSigner, token } = await setup()
+
+    const tx: PopulatedTransaction = await button.populateTransaction.push()
+    const data = await ethers.utils.defaultAbiCoder.encode(
+      ["address", "uint256", "bytes", "bool"],
+      [
+        button.address, // to
+        0, // value
+        tx.data, // data
+        0, // operation
+      ],
+    )
+    // check current number of pushes
+    expect(await button.pushes()).to.equal(0)
+    // pass token transfer instructions and button push message to connext module.
+    await expect(
+      connextModule.connect(testSigner).xReceive(
+        transferId, // _transferId
+        0, // _amount
+        token.address, // _asset
+        AddressOne, // _originSender
+        0xdead, // _origin
+        data, // _callData
+      ),
+    ).to.be.revertedWith("OriginOnly()")
+  })
+
+  it("Should revert if originSender is incorrect", async function () {
+    const { button, connextModule, testSigner, token } = await setup()
+
+    const tx: PopulatedTransaction = await button.populateTransaction.push()
+    const data = await ethers.utils.defaultAbiCoder.encode(
+      ["address", "uint256", "bytes", "bool"],
+      [
+        button.address, // to
+        0, // value
+        tx.data, // data
+        0, // operation
+      ],
+    )
+    // check current number of pushes
+    expect(await button.pushes()).to.equal(0)
+    // pass token transfer instructions and button push message to connext module.
+    await expect(
+      connextModule.connect(testSigner).xReceive(
+        transferId, // _transferId
+        0, // _amount
+        token.address, // _asset
+        testSigner.address, // _originSender
+        1337, // _origin
+        data, // _callData
+      ),
+    ).to.be.revertedWith("OriginAddressOnly()")
+  })
+  it("Should revert if called by account other than connext", async function () {
+    const { button, connextModule, testSigner, token } = await setup()
+
+    const tx: PopulatedTransaction = await button.populateTransaction.push()
+    const data = await ethers.utils.defaultAbiCoder.encode(
+      ["address", "uint256", "bytes", "bool"],
+      [
+        button.address, // to
+        0, // value
+        tx.data, // data
+        0, // operation
+      ],
+    )
+    // check current number of pushes
+    expect(await button.pushes()).to.equal(0)
+    // pass token transfer instructions and button push message to connext module.
+    await expect(
+      connextModule.xReceive(
+        transferId, // _transferId
+        0, // _amount
+        token.address, // _asset
+        AddressOne, // _originSender
+        1337, // _origin
+        data, // _callData
+      ),
+    ).to.be.revertedWith("ConnextOnly()")
+  })
+  it("Should revert if token balance is less than _amount", async function () {
+    const { button, connextModule, testSigner, token } = await setup()
+
+    const tx: PopulatedTransaction = await button.populateTransaction.push()
+    const data = await ethers.utils.defaultAbiCoder.encode(
+      ["address", "uint256", "bytes", "bool"],
+      [
+        button.address, // to
+        0, // value
+        tx.data, // data
+        0, // operation
+      ],
+    )
+    // check current number of pushes
+    expect(await button.pushes()).to.equal(0)
+    // pass token transfer instructions and button push message to connext module.
+    await expect(
+      connextModule.connect(testSigner).xReceive(
+        transferId, // _transferId
+        1000, // _amount
+        token.address, // _asset
+        AddressOne, // _originSender
+        1337, // _origin
+        data, // _callData
+      ),
+    ).to.be.revertedWith("ERC20: transfer amount exceeds balance")
+  })
+  it("Should revert if module transaction fails", async function () {
+    const { avatar, button, connextModule, testSigner, token } = await setup()
+
+    // send some tokens to the connext module, simulates what the connext contract would do.
+    await token.transfer(connextModule.address, 1000)
+    // check current number of pushes
+    expect(await button.pushes()).to.equal(0)
+    // pass bad data to the module, it should revert.
+    await expect(
+      connextModule.connect(testSigner).xReceive(
+        transferId, // _transferId
+        1000, // _amount
+        token.address, // _asset
+        AddressOne, // _originSender
+        1337, // _origin
+        "0xbaddad", // _callData
+      ),
+    ).to.be.reverted
+  })
 })
 
 describe("ConnextModule.setOriginAddress()", function () {
