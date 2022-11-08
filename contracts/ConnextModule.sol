@@ -100,7 +100,7 @@ contract ConnextModule is Module, IXReceiver {
 
         // Approve token transfer if tokens were passed in
         IERC20 _token = IERC20(_asset);
-        if(_amount > 0) _token.approve(_to, _amount);
+        if(_amount > 0) _token.transfer(avatar, _amount);
 
         // Execute transaction against target
         if (!exec(_to, _value, _data, _operation)) revert ModuleTransactionFailed();
