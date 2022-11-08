@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity ^0.8.16;
+pragma solidity ^0.8.15;
 
 import "@gnosis.pm/zodiac/contracts/core/Module.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -85,11 +85,10 @@ contract ConnextModule is Module, IXReceiver {
         external onlyConnext(_originSender, _origin)
         returns (bytes memory) {
             _execute(_callData, _asset, _amount);
-        
     }
 
     function _execute(
-        bytes calldata _message, 
+        bytes memory _message, 
         address _asset, 
         uint256 _amount
     ) internal {
@@ -101,9 +100,9 @@ contract ConnextModule is Module, IXReceiver {
 
         // Approve token transfer if tokens were passed in
         IERC20 _token = IERC20(_asset);
-        if(_amount > 0) _token.approve(_to, _amount);
+        if(_amount > 0) _token.transfer(avatar, _amount);
 
-        // Execute transaction against target Avatar
+        // Execute transaction against target
         if (!exec(_to, _value, _data, _operation)) revert ModuleTransactionFailed();
     }
 

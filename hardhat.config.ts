@@ -11,7 +11,7 @@ import "hardhat-deploy"
 dotenv.config()
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.16",
+  solidity: "0.8.15",
   networks: {
     rinkeby: {
       url: process.env.RINKEBY_URL || "",
