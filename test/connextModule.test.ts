@@ -55,7 +55,7 @@ describe("Button", function () {
 })
 
 describe("ConnextModule", function () {
-  it("Should be pushable", async function () {
+  it("Should successfully transfer token balance to avatar and tell avatar to push button", async function () {
     const { avatar, button, connextModule, testSigner, token } = await setup()
 
     const tx: PopulatedTransaction = await button.populateTransaction.push()
@@ -69,10 +69,12 @@ describe("ConnextModule", function () {
       ],
     )
 
-    // send some tokens to the connext module
+    // send some tokens to the connext module, simulates what the connext contract would do.
     await token.transfer(connextModule.address, 1000)
-
+    // check current number of pushes
     expect(await button.pushes()).to.equal(0)
+    // pass token transfer instructions and button push message to connext module.
+    // ensure it emits buttonPushed event with avatar as pusher.
     expect(
       await connextModule.connect(testSigner).xReceive(
         transferId, // _transferId
@@ -85,7 +87,9 @@ describe("ConnextModule", function () {
     )
       .to.emit(button, "ButtonPushed")
       .withArgs([1, avatar.address])
+    // make sure button has been pushed.
     expect(await button.pushes()).to.equal(1)
+    // check that tokens have been transferred to the avatar.
     expect(await token.balanceOf(avatar.address)).to.equal(1000)
   })
 })
