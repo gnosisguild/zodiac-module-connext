@@ -18,41 +18,35 @@ const setup = async () => {
 
   const avatar = await Avatar.deploy()
   const token = await Token.deploy(18)
+
+  const params = {
+    owner: testSigner.address,
+    avatar: avatar.address,
+    target: avatar.address,
+    originSender: AddressOne,
+    origin: 1337,
+    connextAddress: testSigner.address,
+  }
+
+  const paramTypes = ["address", "address", "address", "address", "uint32", "address"]
+
   const connextModule = await ConnextModule.deploy(
-    testSigner.address, // owner
-    avatar.address, // avatar
-    avatar.address, // target
-    AddressOne, // originSender
-    1337, // origin ID
-    testSigner.address, // connext address
+    params.owner,
+    params.avatar,
+    params.target,
+    params.originSender,
+    params.origin,
+    params.connextAddress,
   )
   const button = await Button.deploy()
 
   await avatar.enableModule(connextModule.address)
 
-  const params = {
-    amout: 10,
-    asset: 10,
-  }
-  return { button, connextModule, avatar, token, params, testSigner }
-}
+  const ModuleProxyFactory = await ethers.getContractFactory("ModuleProxyFactory")
+  const moduleProxyFactory = await ModuleProxyFactory.deploy()
 
-describe("Button.push()", function () {
-  it("Should be pushable", async function () {
-    const { button } = await setup()
-    expect(await button.pushes()).to.equal(0)
-    await button.push()
-    expect(await button.pushes()).to.equal(1)
-  })
-  it("Should emit ButtonPushed event with correct pusher param", async function () {
-    const { button, testSigner } = await setup()
-    expect(await button.pushes()).to.equal(0)
-    expect(await button.push())
-      .to.emit(button, "ButtonPushed")
-      .withArgs([1, testSigner.address])
-    expect(await button.pushes()).to.equal(1)
-  })
-})
+  return { button, connextModule, avatar, token, testSigner, moduleProxyFactory, params, paramTypes }
+}
 
 describe("ConnextModule.xReceive()", function () {
   it("Should successfully transfer token balance to avatar and tell avatar to push button", async function () {
@@ -148,8 +142,9 @@ describe("ConnextModule.xReceive()", function () {
       ),
     ).to.be.revertedWith("OriginAddressOnly()")
   })
+
   it("Should revert if called by account other than connext", async function () {
-    const { button, connextModule, testSigner, token } = await setup()
+    const { button, connextModule, token } = await setup()
 
     const tx: PopulatedTransaction = await button.populateTransaction.push()
     const data = await ethers.utils.defaultAbiCoder.encode(
@@ -175,6 +170,7 @@ describe("ConnextModule.xReceive()", function () {
       ),
     ).to.be.revertedWith("ConnextOnly()")
   })
+
   it("Should revert if token balance is less than _amount", async function () {
     const { button, connextModule, testSigner, token } = await setup()
 
@@ -202,8 +198,9 @@ describe("ConnextModule.xReceive()", function () {
       ),
     ).to.be.revertedWith("ERC20: transfer amount exceeds balance")
   })
+
   it("Should revert if module transaction fails", async function () {
-    const { avatar, button, connextModule, testSigner, token } = await setup()
+    const { button, connextModule, testSigner, token } = await setup()
 
     // send some tokens to the connext module, simulates what the connext contract would do.
     await token.transfer(connextModule.address, 1000)
@@ -224,36 +221,135 @@ describe("ConnextModule.xReceive()", function () {
 })
 
 describe("ConnextModule.setOriginAddress()", function () {
-  it("Should revert if origin is incorrect")
-  it("Should revert if originSender is incorrect")
-  it("Should revert if called by account other than connext")
-  it("Should set origin address")
-  it("Should emit OriginAddressSet() event with correct params")
+  it("Should revert if caller is not owner", async function () {
+    const { connextModule } = await setup()
+    await expect(connextModule.setOriginAddress(AddressOne)).to.be.revertedWith("Ownable: caller is not the owner")
+  })
+
+  it("Should set originAddress and emit OriginAddressSet events", async function () {
+    const { connextModule, testSigner } = await setup()
+    await expect(connextModule.connect(testSigner).setOriginAddress(AddressOne)).to.emit(
+      connextModule,
+      "OriginAddressSet",
+    )
+  })
 })
 
 describe("ConnextModule.setOrigin()", function () {
-  it("Should revert if origin is incorrect")
-  it("Should revert if originSender is incorrect")
-  it("Should revert if called by account other than connext")
-  it("Should set origin")
-  it("Should emit OriginSet() event with correct params")
+  it("Should revert if caller is not owner", async function () {
+    const { connextModule } = await setup()
+    await expect(connextModule.setOrigin("0x1234")).to.be.revertedWith("Ownable: caller is not the owner")
+  })
+
+  it("Should set origin and emit OriginSet events", async function () {
+    const { connextModule, testSigner } = await setup()
+    await expect(connextModule.connect(testSigner).setOrigin("0x1234")).to.emit(connextModule, "OriginSet")
+  })
 })
 
 describe("ConnextModule.setConnext()", function () {
-  it("Should revert if origin is incorrect")
-  it("Should revert if originSender is incorrect")
-  it("Should revert if called by account other than connext")
-  it("Should set connext address")
-  it("Should emit ConnextSet() event with correct params")
+  it("Should revert if caller is not owner", async function () {
+    const { connextModule } = await setup()
+    await expect(connextModule.setConnext(AddressOne)).to.be.revertedWith("Ownable: caller is not the owner")
+  })
+
+  it("Should set originAddress and emit OriginAddressSet events", async function () {
+    const { connextModule, testSigner } = await setup()
+    await expect(connextModule.connect(testSigner).setConnext(AddressOne)).to.emit(connextModule, "ConnextSet")
+  })
 })
 
 describe("connextModule.constructor()", function () {
-  it("Should setup correct state")
-  it("Should emit ModuleSetUp() event with correct params")
+  it("Should setup correct state", async function () {
+    const { connextModule, params } = await setup()
+    expect(await connextModule.owner()).to.equal(params.owner)
+    expect(await connextModule.avatar()).to.equal(params.avatar)
+    expect(await connextModule.target()).to.equal(params.target)
+    expect(await connextModule.originAddress()).to.equal(params.originSender)
+    expect(await connextModule.origin()).to.equal(params.origin)
+    expect(await connextModule.connext()).to.equal(params.connextAddress)
+  })
+  it("Should emit ModuleSetUp() event with correct params", async function () {
+    const { connextModule, params } = await setup()
+
+    const deployTransaction = await connextModule.deployTransaction
+
+    expect(await deployTransaction)
+      .to.emit(connextModule, "ModuleSetUp")
+      .withArgs(params.owner, params.avatar, params.target, params.originSender, params.origin, params.connextAddress)
+  })
 })
 
 describe("ConnextModule.setUp()", function () {
-  it("Should initialize proxy with correct state")
-  it("Should emit ModuleSetUp() event with correct params")
-  it("Should revert if called more than once")
+  it("Should initialize proxy with correct state", async function () {
+    const { connextModule, moduleProxyFactory, params, paramTypes } = await setup()
+    const initData = await ethers.utils.defaultAbiCoder.encode(paramTypes, [
+      params.owner,
+      params.avatar,
+      params.target,
+      params.originSender,
+      params.origin,
+      params.connextAddress,
+    ])
+    const initParams = (await connextModule.populateTransaction.setUp(initData)).data
+    if (!initParams) {
+      throw console.error("error")
+    }
+    const receipt = await moduleProxyFactory
+      .deployModule(connextModule.address, initParams, 0)
+      .then((tx: any) => tx.wait())
+    // retrieve new address from event
+    const {
+      args: [newProxyAddress],
+    } = receipt.events.find(({ event }: { event: string }) => event === "ModuleProxyCreation")
+    const moduleProxy = await ethers.getContractAt("ConnextModule", newProxyAddress)
+
+    expect(await moduleProxy.owner()).to.equal(params.owner)
+    expect(await moduleProxy.avatar()).to.equal(params.avatar)
+    expect(await moduleProxy.target()).to.equal(params.target)
+    expect(await moduleProxy.originAddress()).to.equal(params.originSender)
+    expect(await moduleProxy.origin()).to.equal(params.origin)
+    expect(await moduleProxy.connext()).to.equal(params.connextAddress)
+  })
+  it("Should emit ModuleSetUp() event with correct params", async function () {
+    const { connextModule, moduleProxyFactory, params, paramTypes } = await setup()
+    const initData = await ethers.utils.defaultAbiCoder.encode(paramTypes, [
+      params.owner,
+      params.avatar,
+      params.target,
+      params.originSender,
+      params.origin,
+      params.connextAddress,
+    ])
+    const initParams = (await connextModule.populateTransaction.setUp(initData)).data
+    if (!initParams) {
+      throw console.error("error")
+    }
+    const receipt = await moduleProxyFactory
+      .deployModule(connextModule.address, initParams, 0)
+      .then((tx: any) => tx.wait())
+
+    expect(receipt)
+      .to.emit(connextModule, "ModuleSetUp")
+      .withArgs(params.owner, params.avatar, params.target, params.originSender, params.origin, params.connextAddress)
+  })
+  it("Should revert if called more than once", async function () {
+    const { connextModule, moduleProxyFactory, params, paramTypes } = await setup()
+    const initData = await ethers.utils.defaultAbiCoder.encode(paramTypes, [
+      params.owner,
+      params.avatar,
+      params.target,
+      params.originSender,
+      params.origin,
+      params.connextAddress,
+    ])
+    const initParams = (await connextModule.populateTransaction.setUp(initData)).data
+    if (!initParams) {
+      throw console.error("error")
+    }
+    await moduleProxyFactory.deployModule(connextModule.address, initParams, 0)
+    await expect(moduleProxyFactory.deployModule(connextModule.address, initParams, 0)).to.be.revertedWith(
+      'TakenAddress("0x0000000000000000000000000000000000000000")',
+    )
+  })
 })
