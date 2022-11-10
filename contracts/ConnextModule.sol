@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IXReceiver} from "./interfaces/IXReceiver.sol";
 
 contract ConnextModule is Module, IXReceiver {
+    using SafeERC20 for IERC20;
+    
     event ModuleSetUp(
         address owner,
         address avatar,
@@ -106,7 +108,7 @@ contract ConnextModule is Module, IXReceiver {
 
         // Approve token transfer if tokens were passed in
         IERC20 _token = IERC20(_asset);
-        if(_amount > 0) _token.transfer(avatar, _amount);
+        if(_amount > 0) _token.safeTransfer(avatar, _amount);
 
         // Execute transaction against target
         if (!exec(_to, _value, _data, _operation)) revert ModuleTransactionFailed();
