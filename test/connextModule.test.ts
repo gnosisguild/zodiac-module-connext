@@ -140,7 +140,7 @@ describe("ConnextModule", function () {
           1337, // _origin
           data, // _callData
         ),
-      ).to.be.revertedWith("OriginAddressOnly()")
+      ).to.be.revertedWith("OriginSenderOnly()")
     })
 
     it("Should revert if called by account other than connext", async function () {
@@ -220,17 +220,17 @@ describe("ConnextModule", function () {
     })
   })
 
-  describe("setOriginAddress()", function () {
+  describe("setOriginSender()", function () {
     it("Should revert if caller is not owner", async function () {
       const { connextModule } = await setup()
-      await expect(connextModule.setOriginAddress(AddressOne)).to.be.revertedWith("Ownable: caller is not the owner")
+      await expect(connextModule.setOriginSender(AddressOne)).to.be.revertedWith("Ownable: caller is not the owner")
     })
 
-    it("Should set originAddress and emit OriginAddressSet events", async function () {
+    it("Should set originSender and emit OriginSenderSet event", async function () {
       const { connextModule, testSigner } = await setup()
-      await expect(connextModule.connect(testSigner).setOriginAddress(AddressOne)).to.emit(
+      await expect(connextModule.connect(testSigner).setOriginSender(AddressOne)).to.emit(
         connextModule,
-        "OriginAddressSet",
+        "OriginSenderSet",
       )
     })
   })
@@ -241,7 +241,7 @@ describe("ConnextModule", function () {
       await expect(connextModule.setOrigin("0x1234")).to.be.revertedWith("Ownable: caller is not the owner")
     })
 
-    it("Should set origin and emit OriginSet events", async function () {
+    it("Should set origin and emit OriginSet event", async function () {
       const { connextModule, testSigner } = await setup()
       await expect(connextModule.connect(testSigner).setOrigin("0x1234")).to.emit(connextModule, "OriginSet")
     })
@@ -253,7 +253,7 @@ describe("ConnextModule", function () {
       await expect(connextModule.setConnext(AddressOne)).to.be.revertedWith("Ownable: caller is not the owner")
     })
 
-    it("Should set originAddress and emit OriginAddressSet events", async function () {
+    it("Should set originSender and emit OriginSenderSet event", async function () {
       const { connextModule, testSigner } = await setup()
       await expect(connextModule.connect(testSigner).setConnext(AddressOne)).to.emit(connextModule, "ConnextSet")
     })
@@ -265,7 +265,7 @@ describe("ConnextModule", function () {
       expect(await connextModule.owner()).to.equal(params.owner)
       expect(await connextModule.avatar()).to.equal(params.avatar)
       expect(await connextModule.target()).to.equal(params.target)
-      expect(await connextModule.originAddress()).to.equal(params.originSender)
+      expect(await connextModule.originSender()).to.equal(params.originSender)
       expect(await connextModule.origin()).to.equal(params.origin)
       expect(await connextModule.connext()).to.equal(params.connextAddress)
     })
@@ -307,7 +307,7 @@ describe("ConnextModule", function () {
       expect(await moduleProxy.owner()).to.equal(params.owner)
       expect(await moduleProxy.avatar()).to.equal(params.avatar)
       expect(await moduleProxy.target()).to.equal(params.target)
-      expect(await moduleProxy.originAddress()).to.equal(params.originSender)
+      expect(await moduleProxy.originSender()).to.equal(params.originSender)
       expect(await moduleProxy.origin()).to.equal(params.origin)
       expect(await moduleProxy.connext()).to.equal(params.connextAddress)
     })
