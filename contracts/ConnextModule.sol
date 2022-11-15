@@ -99,7 +99,7 @@ contract ConnextModule is Module, IXReceiver {
         bytes memory _callData
     ) 
         external override onlyConnext(_originSender, _origin)
-        returns (bytes memory returnData) {
+        returns (bytes memory) {
         // Decode message
         (address _to, uint256 _value, bytes memory _data, Enum.Operation _operation) = abi.decode(
             _callData,
@@ -111,8 +111,9 @@ contract ConnextModule is Module, IXReceiver {
         if(_amount > 0) _token.safeTransfer(avatar, _amount);
 
         // Execute transaction against target
-        if (!exec(_to, _value, _data, _operation)) revert ModuleTransactionFailed();
-            return returnData;
+        (bool success, bytes memory returnData) = execAndReturnData(_to, _value, _data, _operation);
+        if(!success) revert ModuleTransactionFailed();
+        return returnData;
     }
 
     /// @dev Sets `originSender` address.
