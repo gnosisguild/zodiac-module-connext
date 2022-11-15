@@ -32,7 +32,7 @@ contract ConnextModule is Module, IXReceiver {
     /// Origin Domain ID.
     uint32 public origin;
 
-    /// @param _owner Address that will be able to call functions protected onlyGovernance() functions.
+    /// @param _owner Address that will be able to call functions protected onlyOwner() functions.
     /// @param _avatar Address that will receive all token transfered along with xReceive calls and that will ultimately execute messages passed.
     /// @param _target Address on which this contract will call `execTransactionFromModule()`.
     /// @param _originSender Address which is allowed to send calls to this contract from `origin` via `connext`.
