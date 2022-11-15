@@ -89,6 +89,7 @@ contract ConnextModule is Module, IXReceiver {
     /// @param _asset Address of the asset to be transferred with this call.
     /// @param _originSender The foreign address which sent this message.
     /// @param _origin The identifier for the foreign chain where this message originated.
+    /// @return Returns `bytes memory returnData` if the call was successful.
     /// @notice Only callable by `connext` address.
     function xReceive(
         bytes32,
