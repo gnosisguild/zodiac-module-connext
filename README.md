@@ -10,8 +10,6 @@ If you have any questions about Zodiac, join the [Gnosis Guild Discord](https://
 
 ## About the Connext Module
 
-⚠️ Warning: Audits for this module are currently underway. **DO NOT USE THIS CODE IN PRODUCTION UNTIL THEY ARE COMPLETE**. ⚠️
-
 This module allows an Avatar to be the target of any arbitrary function call originiating from a Gnosis Safe on another domain (chain or rollup) using [Connext](https://connext.network).
 
 Connext is a modular protocol for cross-domain communication. It piggybacks on the most secure Arbitrary Messaging Bridge available for a given ecosystem (e.g. the Optimism rollup bridge, or the Gnosischain AMB) to relay data and funds asynchronously between contracts on different chains.
