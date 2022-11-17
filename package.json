@@ -1,10 +1,10 @@
 {
-  "name": "zodiac-module-oz-governor",
+  "name": "zodiac-module-connext",
   "version": "1.0.0",
-  "description": "An implementation of OpenZeppelin's Governor as a Zodiac module.",
+  "description": "A module for controlling safes via connext.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gnosis/zodiac-module-oz-governor"
+    "url": "git+https://github.com/gnosis/zodiac-module-connext.git"
   },
   "scripts": {
     "build": "hardhat compile",
@@ -21,9 +21,9 @@
   "author": "Gnosis Guild",
   "license": "LGPL-3.0",
   "bugs": {
-    "url": "https://github.com/gnosis/zodiac-module-oz-governor/issues"
+    "url": "https://github.com/gnosis/zodiac-module-connext/issues"
   },
-  "homepage": "https://github.com/gnosis/zodiac-module-oz-governor",
+  "homepage": "https://github.com/gnosis/zodiac-module-connext",
   "devDependencies": {
     "@gnosis.pm/zodiac": "1.0.8",
     "@nomiclabs/hardhat-ethers": "^2.0.0",
