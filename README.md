@@ -45,35 +45,26 @@ To see available commands run `yarn hardhat`.
 
 Some helpful commands:
 
-```
+```sh
 yarn install # install dependencies
 yarn build # compiles contracts
 yarn test # runs the tests
-yarn deploy # deploys the contracts add the `--network` param to select a network
+yarn deployMasterCopy # deploys the mastercopy of the Connext Module. Add the `--network` param to select a network.
+yarn setup # deploys a instance of this module.
 ```
 
-## Deployment
+## License
 
-This project is set up to support both a "normal deployment" where the module is deployed directly, along with deployment via the Mastercopy / Minimal Proxy pattern (using our ModuleProxyFactory).
+Created under the [LGPL-3.0+ license](LICENSE).
 
-Currently, it is set up to deploy via the Mastercopy / Minimal Proxy pattern on Rinkeby and as a "normal deployment" on other networks. You can easily modify this behavior for your own module.
+## Audits
 
-```
-yarn deploy # "normal deployment"
-yarn  deploy --network rinkeby # deploys a mastercopy and a minimal proxy for the module
-```
+An audit has been performed by the [G0 group](https://github.com/g0-group).
 
-The "normal deployment" can be useful for easily deploying and testing your module locally (for instance, the Hardhat Network).
+All issues and notes of the audit have been addressed in commit [2341cf0375b8f78b0dc3bd4d0d7ee864e1a6f804](https://github.com/gnosis/zodiac-module-exit/commit/2341cf0375b8f78b0dc3bd4d0d7ee864e1a6f804).
 
-The "normal deployment" deploys the MyModule contract and the test contracts (`contracts/test/Button.sol` and `contracts/test/TestAvatar.sol`), then sets the TestAvatar as the Button owner, and enables MyModule on the TestAvatar.
+The audit results are available as a pdf in [this repo](packages/contracts/audits/ZodiacExitModuleJan2022.pdf).
 
-The Mastercopy / Minimal Proxy deployment deploys the MyModule mastercopy, a MyModule proxy, and the test contracts (contracts/test/Button.sol and contracts/test/TestAvatar.sol), then sets the TestAvatar as the Button owner and enables the MyModule proxy on the TestAvatar.
+## Security and Liability
 
-### Mastercopy and minimal proxys
-
-When deploying modules that are going to be used for multiple avatars, it can make sense to use our Mastercopy/Proxy pattern. This deployment uses the Singleton Factory contract (EIP-2470). See a list of supported networks [here](https://blockscan.com/address/0xce0042B868300000d44A59004Da54A005ffdcf9f). For adding support to other chains, check out the documentation [here](https://github.com/gnosis/zodiac/tree/master/src/factory#deployments) and [here](https://eips.ethereum.org/EIPS/eip-2470).
-
-## Helpful links
-
-- [Zodiac Documentation](https://gnosis.github.io/zodiac/docs/intro)
-- [Connext Documentation](https://docs.connext.network)
+All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
