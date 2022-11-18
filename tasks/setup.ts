@@ -34,13 +34,15 @@ const deployConnextModuleFull = async (
   { ethers, deployments, getNamedAccounts }: HardhatRuntimeEnvironment,
 ) => {
   console.log("Deploying Connext Module")
-  const { deploy } = deployments
-  const { deployer } = await getNamedAccounts()
-  const connextModule = await deploy("ConnextModule", {
-    from: deployer,
-    args: [taskArgs.owner, taskArgs.avatar, taskArgs.target, taskArgs.sender, taskArgs.origin, taskArgs.connext],
-    deterministicDeployment: true,
-  })
+  const ConnextModule = await ethers.getContractFactory("ConnextModule")
+  const connextModule = await ConnextModule.deploy(
+    taskArgs.owner,
+    taskArgs.avatar,
+    taskArgs.target,
+    taskArgs.sender,
+    taskArgs.origin,
+    taskArgs.connext,
+  )
   console.log("Connext Module deployed to:", connextModule.address)
 }
 
