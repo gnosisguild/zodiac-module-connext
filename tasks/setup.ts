@@ -5,7 +5,6 @@ import { task, types } from "hardhat/config"
 import { deployAndSetUpCustomModule } from "@gnosis.pm/zodiac"
 import { deployModuleFactory } from "@gnosis.pm/zodiac/dist/src/factory/deployModuleFactory"
 import { deployMastercopy } from "@gnosis.pm/zodiac/dist/src/factory/mastercopyDeployer"
-import { ContractFactory } from "ethers"
 
 interface FactoryTaskArgs {
   proxied: boolean
@@ -94,7 +93,7 @@ task("setup", "deploy a Connext Module")
 const deployConnextModuleMasterCopy = async (hre: HardhatRuntimeEnvironment) => {
   console.log("Deploying Connext Module Master Copy")
 
-  const ConnextModule: ContractFactory = await hre.ethers.getContractFactory("ConnextModule")
+  const ConnextModule = await hre.ethers.getContractFactory("ConnextModule")
   const mastercopy = await deployMastercopy(hre, ConnextModule, [
     firstAddress,
     firstAddress,
