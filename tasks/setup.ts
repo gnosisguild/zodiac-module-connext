@@ -50,15 +50,14 @@ const deployConnextModuleProxy = async (taskArgs: ConnextModuleTaskArgs, hre: Ha
   const deployerSigner = await hre.ethers.getSigner(deployer)
 
   const mastercopy = await deployConnextModuleMasterCopy(hre)
-  console.log("Mastercopy deployed to:", mastercopy.address)
-
   const chainId = await hre.getChainId()
+  const artifact = await hre.artifacts.readArtifact("ConnextModule")
 
   await deployModuleFactory(hre)
 
   const { transaction } = await deployAndSetUpCustomModule(
-    mastercopy.address,
-    mastercopy.abi,
+    mastercopy,
+    artifact.abi,
     {
       types: ["address", "address", "address", "address", "uint32", "address"],
       values: [taskArgs.owner, taskArgs.avatar, taskArgs.target, taskArgs.sender, taskArgs.origin, taskArgs.connext],
@@ -91,8 +90,6 @@ task("setup", "deploy a Connext Module")
   .setAction(deployConnextModule)
 
 const deployConnextModuleMasterCopy = async (hre: HardhatRuntimeEnvironment) => {
-  console.log("Deploying Connext Module Master Copy")
-
   const ConnextModule = await hre.ethers.getContractFactory("ConnextModule")
   const mastercopy = await deployMastercopy(hre, ConnextModule, [
     firstAddress,
@@ -102,7 +99,7 @@ const deployConnextModuleMasterCopy = async (hre: HardhatRuntimeEnvironment) => 
     0,
     firstAddress,
   ])
-  console.log("ConnextModule mastercopy deployed to:", mastercopy.address)
+  console.log("ConnextModule mastercopy deployed to:", mastercopy)
   return mastercopy
 }
 task("deployMasterCopy", "Deploys the mastercopy of the connext module").setAction(deployConnextModuleMasterCopy)
