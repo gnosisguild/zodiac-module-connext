@@ -2,7 +2,10 @@ import "hardhat-deploy"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import "@nomiclabs/hardhat-ethers"
 import { task, types } from "hardhat/config"
-import { deployAndSetUpCustomModule } from "@gnosis.pm/zodiac/dist/src/factory/factory"
+import { deployAndSetUpCustomModule } from "@gnosis.pm/zodiac"
+import { deployModuleFactory } from "@gnosis.pm/zodiac/dist/src/factory/deployModuleFactory"
+import { deployMastercopy } from "@gnosis.pm/zodiac/dist/src/factory/mastercopyDeployer"
+import { ContractFactory } from "ethers"
 
 interface FactoryTaskArgs {
   proxied: boolean
@@ -21,9 +24,9 @@ const firstAddress = "0x0000000000000000000000000000000000000001"
 
 const deployConnextModule = async (taskArgs: ConnextModuleTaskArgs, hre: HardhatRuntimeEnvironment) => {
   if (taskArgs.proxied) {
-    deployConnextModuleProxy(taskArgs, hre)
+    await deployConnextModuleProxy(taskArgs, hre)
   } else {
-    deployConnextModuleFull(taskArgs, hre)
+    await deployConnextModuleFull(taskArgs, hre)
   }
 }
 
@@ -42,27 +45,30 @@ const deployConnextModuleFull = async (
   console.log("Connext Module deployed to:", connextModule.address)
 }
 
-const deployConnextModuleProxy = async (
-  taskArgs: ConnextModuleTaskArgs,
-  { ethers, deployments, getNamedAccounts, getChainId }: HardhatRuntimeEnvironment,
-) => {
+const deployConnextModuleProxy = async (taskArgs: ConnextModuleTaskArgs, hre: HardhatRuntimeEnvironment) => {
   console.log("Deploying Connext Module Proxy")
-  const { deployer } = await getNamedAccounts()
-  const deployerSigner = await ethers.getSigner(deployer)
+  const { deployer } = await hre.getNamedAccounts()
+  const deployerSigner = await hre.ethers.getSigner(deployer)
 
-  const connextModuleMasterCopyDeployment = await deployments.get("ConnextModuleMasterCopy")
-  const chainId = await getChainId()
-  const { transaction } = deployAndSetUpCustomModule(
-    connextModuleMasterCopyDeployment.address,
-    connextModuleMasterCopyDeployment.abi,
+  const mastercopy = await deployConnextModuleMasterCopy(hre)
+  console.log("Mastercopy deployed to:", mastercopy.address)
+
+  const chainId = await hre.getChainId()
+
+  await deployModuleFactory(hre)
+
+  const { transaction } = await deployAndSetUpCustomModule(
+    mastercopy.address,
+    mastercopy.abi,
     {
+      types: ["address", "address", "address", "address", "uint32", "address"],
       values: [taskArgs.owner, taskArgs.avatar, taskArgs.target, taskArgs.sender, taskArgs.origin, taskArgs.connext],
-      types: ["address", "address", "address", "address", "bytes32", "address"],
     },
-    ethers.provider,
+    hre.ethers.provider,
     Number(chainId),
     Date.now().toString(),
   )
+
   const deploymentTransaction = await deployerSigner.sendTransaction(transaction)
   const receipt = await deploymentTransaction.wait()
   console.log(receipt)
@@ -85,25 +91,21 @@ task("setup", "deploy a Connext Module")
   .addParam("proxied", "Deploy module through proxy", false, types.boolean)
   .setAction(deployConnextModule)
 
-deployConnextModule.tags = ["ConnextModule"]
-deployConnextModule.dependencies = ["ConnextModuleMasterCopy"]
-
-const deployConnextModuleMasterCopy = async (
-  taskArgs: ConnextModuleTaskArgs,
-  { ethers, deployments, getNamedAccounts }: HardhatRuntimeEnvironment,
-) => {
-  const { deploy } = deployments
-  const { deployer } = await getNamedAccounts()
+const deployConnextModuleMasterCopy = async (hre: HardhatRuntimeEnvironment) => {
   console.log("Deploying Connext Module Master Copy")
 
-  const mastercopy = await deploy("ConnextModule", {
-    from: deployer,
-    args: [firstAddress, firstAddress, firstAddress, firstAddress, 0, firstAddress],
-    deterministicDeployment: true,
-  })
+  const ConnextModule: ContractFactory = await hre.ethers.getContractFactory("ConnextModule")
+  const mastercopy = await deployMastercopy(hre, ConnextModule, [
+    firstAddress,
+    firstAddress,
+    firstAddress,
+    firstAddress,
+    0,
+    firstAddress,
+  ])
   console.log("ConnextModule mastercopy deployed to:", mastercopy.address)
+  return mastercopy
 }
 task("deployMasterCopy", "Deploys the mastercopy of the connext module").setAction(deployConnextModuleMasterCopy)
-deployConnextModuleMasterCopy.tags = ["ConnextModuleMasterCopy"]
 
 export {}
