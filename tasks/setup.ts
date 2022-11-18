@@ -55,7 +55,7 @@ const deployConnextModuleProxy = async (taskArgs: ConnextModuleTaskArgs, hre: Ha
   const chainId = await hre.getChainId()
   const artifact = await hre.artifacts.readArtifact("ConnextModule")
 
-  await deployModuleFactory(hre)
+  const factory = await deployModuleFactory(hre)
 
   const { transaction } = await deployAndSetUpCustomModule(
     mastercopy,
@@ -69,11 +69,13 @@ const deployConnextModuleProxy = async (taskArgs: ConnextModuleTaskArgs, hre: Ha
     Date.now().toString(),
   )
 
+  // Should be able to remove this line in future, waiting on a fix in the Zodiac repo
+  transaction.to = factory
+
   const deploymentTransaction = await deployerSigner.sendTransaction(transaction)
   const receipt = await deploymentTransaction.wait()
-  console.log(receipt)
   const connextModuleProxyAddress = receipt.logs[1].address
-  console.log("MyModule minimal proxy deployed to:", connextModuleProxyAddress)
+  console.log("MonnextModule minimal proxy deployed to:", connextModuleProxyAddress)
 }
 
 task("setup", "deploy a Connext Module")
