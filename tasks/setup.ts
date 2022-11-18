@@ -75,7 +75,7 @@ const deployConnextModuleProxy = async (taskArgs: ConnextModuleTaskArgs, hre: Ha
   const deploymentTransaction = await deployerSigner.sendTransaction(transaction)
   const receipt = await deploymentTransaction.wait()
   const connextModuleProxyAddress = receipt.logs[1].address
-  console.log("MonnextModule minimal proxy deployed to:", connextModuleProxyAddress)
+  console.log("Proxy deployed to:      ", connextModuleProxyAddress)
 }
 
 task("setup", "deploy a Connext Module")
