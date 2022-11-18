@@ -21,9 +21,9 @@ const firstAddress = "0x0000000000000000000000000000000000000001"
 
 const deployConnextModule = async (taskArgs: ConnextModuleTaskArgs, hre: HardhatRuntimeEnvironment) => {
   if (taskArgs.proxied) {
-    deployConnextModuleProxy(taskArgs, hre)
+    return deployConnextModuleProxy(taskArgs, hre)
   } else {
-    deployConnextModuleFull(taskArgs, hre)
+    return deployConnextModuleFull(taskArgs, hre)
   }
 }
 
