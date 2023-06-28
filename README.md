@@ -23,7 +23,7 @@ A DAO or Gnosis Safe on the origin domain wants to call `restrictedFunction()` o
     - `_to`: target contract address, 
     - `_value`: native assets to be passed into the function, 
     - `_data`: the function signature of `restrictedFunction()`,
-    - `_operation`: the type of operation
+    - `_operation`: the type of operation (0 == call, 1 == delegate call)
 2. The DAO or Gnosis Safe calls `xcall` on the Connext contract on the origin domain, passing in the above `_calldata` and the `target` Connext Module. See the [Connext Quickstart](https://docs.connext.network/developers/quickstart#source-contract) for more info.
 3. Connext's protocol posts your payload to the Connext Module on the destination domain, which in turn calls `restrictedFunction()`.
 
