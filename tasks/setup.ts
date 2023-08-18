@@ -5,6 +5,7 @@ import { task, types } from "hardhat/config"
 import { deployAndSetUpCustomModule } from "@gnosis.pm/zodiac"
 import { deployModuleFactory } from "@gnosis.pm/zodiac/dist/src/factory/deployModuleFactory"
 import { deployMastercopy } from "@gnosis.pm/zodiac/dist/src/factory/mastercopyDeployer"
+import { ethers } from "ethers"
 
 interface FactoryTaskArgs {
   proxied: boolean
@@ -20,6 +21,8 @@ interface ConnextModuleTaskArgs extends FactoryTaskArgs {
 }
 
 const firstAddress = "0x0000000000000000000000000000000000000001"
+
+const salt = ethers.utils.id("Some random string")
 
 const deployConnextModule = async (taskArgs: ConnextModuleTaskArgs, hre: HardhatRuntimeEnvironment) => {
   if (taskArgs.proxied) {
@@ -51,7 +54,7 @@ const deployConnextModuleProxy = async (taskArgs: ConnextModuleTaskArgs, hre: Ha
   const { deployer } = await hre.getNamedAccounts()
   const deployerSigner = await hre.ethers.getSigner(deployer)
 
-  const mastercopy = await deployConnextModuleMasterCopy(hre)
+  const mastercopy = await deployConnextModuleMasterCopy("", hre)
   const chainId = await hre.getChainId()
   const artifact = await hre.artifacts.readArtifact("ConnextModule")
 
@@ -93,16 +96,14 @@ task("setup", "deploy a Connext Module")
   .addParam("proxied", "Deploy module through proxy", false, types.boolean)
   .setAction(deployConnextModule)
 
-const deployConnextModuleMasterCopy = async (hre: HardhatRuntimeEnvironment) => {
+const deployConnextModuleMasterCopy = async (_taskArguments: any, hre: HardhatRuntimeEnvironment) => {
   const ConnextModule = await hre.ethers.getContractFactory("ConnextModule")
-  const mastercopy = await deployMastercopy(hre, ConnextModule, [
-    firstAddress,
-    firstAddress,
-    firstAddress,
-    firstAddress,
-    0,
-    firstAddress,
-  ])
+  const mastercopy = await deployMastercopy(
+    hre,
+    ConnextModule,
+    [firstAddress, firstAddress, firstAddress, firstAddress, 0, firstAddress],
+    salt,
+  )
   console.log("ConnextModule mastercopy deployed to:", mastercopy)
   return mastercopy
 }
