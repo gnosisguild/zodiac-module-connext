@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { task, types } from "hardhat/config"
 import "@nomicfoundation/hardhat-ethers"
 
-import { encodeDeployProxy, readMastercopyArtifact, predictProxyAddress } from "zodiac-core"
+import { encodeDeployProxy, readMastercopyArtifact, predictProxyAddress } from "@gnosis-guild/zodiac-core"
 
 interface FactoryTaskArgs {
   proxied: boolean

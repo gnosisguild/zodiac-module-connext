@@ -1,4 +1,4 @@
-import { deployMastercopy } from "zodiac-core"
+import { deployMastercopy } from "@gnosis-guild/zodiac-core"
 import { task } from "hardhat/config"
 import createAdapter from "./createEIP1193"
 

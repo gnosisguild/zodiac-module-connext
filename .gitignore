@@ -6,7 +6,7 @@ typechain
 .devcontainer
 out
 .vscode
-
+build
 #Hardhat files
 cache
 artifacts

@@ -2,7 +2,7 @@ import { Signer } from "ethers"
 import { task } from "hardhat/config"
 import { EthereumProvider } from "hardhat/types"
 import "@nomicfoundation/hardhat-ethers"
-import { EIP1193Provider, deployMastercopiesFromArtifact } from "zodiac-core"
+import { EIP1193Provider, deployMastercopiesFromArtifact } from "@gnosis-guild/zodiac-core"
 import createAdapter from "./createEIP1193"
 
 task(

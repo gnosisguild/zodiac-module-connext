@@ -1,5 +1,5 @@
 import hre, { ethers } from "hardhat"
-import { deployFactories, deployMastercopy, deployProxy } from "zodiac-core"
+import { deployFactories, deployMastercopy, deployProxy } from "@gnosis-guild/zodiac-core"
 import { AbiCoder, ZeroHash } from "ethers"
 import { expect } from "chai"
 
@@ -382,15 +382,25 @@ describe("ConnextModule", function () {
       const { connextModule, params } = await loadFixture(setup)
       expect(await connextModule.owner()).to.equal(params.owner)
       expect(await connextModule.avatar()).to.equal(params.avatar)
-      // expect(await masterCopy.target).to.equal(params.target)
       expect(await connextModule.originSender()).to.equal(params.originSender)
       expect(await connextModule.origin()).to.equal(params.origin)
       expect(await connextModule.connext()).to.equal(params.connextAddress)
     })
-    it.skip("Should emit ModuleSetUp() event with correct params", async function () {
-      const { connextModule, params } = await loadFixture(setup)
+    it("Should emit ModuleSetUp() event with correct params", async function () {
+      const { params } = await loadFixture(setup)
+      const connextModuleFactory = await ethers.getContractFactory("ConnextModule")
+      const connextModule = await connextModuleFactory.deploy(
+        params.owner,
+        params.avatar,
+        params.target,
+        params.originSender,
+        params.origin,
+        params.connextAddress,
+      )
 
-      await expect(await connextModule.deploymentTransaction)
+      const tx = connextModule.deploymentTransaction()
+      const receipt = await tx?.wait()
+      await expect(receipt)
         .to.emit(connextModule, "ModuleSetUp")
         .withArgs(params.owner, params.avatar, params.target, params.originSender, params.origin, params.connextAddress)
     })
@@ -405,7 +415,6 @@ describe("ConnextModule", function () {
 
       expect(await moduleProxy.owner()).to.be.equal(params.owner)
       expect(await moduleProxy.avatar()).to.be.equal(params.avatar)
-      // expect(await moduleProxy.target()).to.be.eq(params.target);
       expect(await moduleProxy.originSender()).to.equal(params.originSender)
       expect(await moduleProxy.origin()).to.equal(params.origin)
       expect(await moduleProxy.connext()).to.equal(params.connextAddress)

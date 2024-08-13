@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.15;
 
-import "zodiac-core/contracts/core/Module.sol";
+import "@gnosis-guild/zodiac-core/contracts/core/Module.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IXReceiver} from "./interfaces/IXReceiver.sol";
 
