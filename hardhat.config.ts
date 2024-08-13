@@ -1,17 +1,15 @@
 import * as dotenv from "dotenv"
+import type { HttpNetworkUserConfig } from "hardhat/types"
 import { HardhatUserConfig } from "hardhat/config"
 import "@nomicfoundation/hardhat-toolbox"
 import "@nomicfoundation/hardhat-verify"
 import "@nomicfoundation/hardhat-ethers"
-import "@typechain/hardhat"
-import "hardhat-gas-reporter"
-import "hardhat-deploy"
-// import "solidity-coverage"
-import "./tasks/mastercopy-extract"
-import "./tasks/mastercopy-deploy"
-import "./tasks/mastercopy-verify"
+
+import "./tasks/deploy-all-mastercopies"
+import "./tasks/deploy-mastercopy"
+import "./tasks/extract-mastercopy"
 import "./tasks/setup"
-import type { HttpNetworkUserConfig } from "hardhat/types"
+import "./tasks/verify-all-mastercopies"
 
 dotenv.config()
 
