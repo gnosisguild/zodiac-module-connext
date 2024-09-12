@@ -1,32 +1,38 @@
-import { deployMastercopy } from "@gnosis-guild/zodiac-core"
-import { task } from "hardhat/config"
-import createAdapter from "./createEIP1193"
+import { task, types } from "hardhat/config"
 
-const FirstAddress = "0x0000000000000000000000000000000000000001"
-const SaltZero = "0x0000000000000000000000000000000000000000000000000000000000000000"
+import { deployMastercopy, readMastercopies } from "@gnosis-guild/zodiac-core"
+import { createEIP1193 } from "./create-EIP1193"
 
-task("deploy-mastercopy", "Deploys current state as mastercopy").setAction(async (hre) => {
-  const [signer] = await hre.ethers.getSigners()
-  const eip1193Provider = createAdapter({
-    provider: hre.network.provider,
-    signer: signer,
+task(
+  "deploy:mastercopy",
+  "For every version entry on the artifacts file, deploys a mastercopy into the current network",
+)
+  .addOptionalParam(
+    "contractVersion",
+    "The specific version of the contract to deploy",
+    "latest", // Default value
+    types.string,
+  )
+  .setAction(async ({ contractVersion }, hre) => {
+    const [signer] = await hre.ethers.getSigners()
+    const provider = createEIP1193(hre.network.provider, signer)
+
+    for (const mastercopy of readMastercopies({ contractVersion })) {
+      const { contractName, contractVersion, factory, bytecode, constructorArgs, salt } = mastercopy
+      const { address, noop } = await deployMastercopy({
+        factory,
+        bytecode,
+        constructorArgs,
+        salt,
+        provider,
+        onStart: () => {
+          console.log(`⏳ ${contractName}@${contractVersion}: Deployment starting...`)
+        },
+      })
+      if (noop) {
+        console.log(`🔄 ${contractName}@${contractVersion}: Already deployed at ${address}`)
+      } else {
+        console.log(`🚀 ${contractName}@${contractVersion}: Successfully deployed at ${address}`)
+      }
+    }
   })
-
-  const ConnextModule = await hre.ethers.getContractFactory("ConnextModule")
-
-  const { noop, address } = await deployMastercopy({
-    bytecode: ConnextModule.bytecode,
-    constructorArgs: {
-      types: ["address", "address", "address", "address", "uint32", "address"],
-      values: [FirstAddress, FirstAddress, FirstAddress, FirstAddress, 0, FirstAddress],
-    },
-    salt: SaltZero,
-    provider: eip1193Provider,
-  })
-
-  if (noop) {
-    console.log("ConnextModule already deployed to:", address)
-  } else {
-    console.log("ConnextModule was deployed to:", address)
-  }
-})

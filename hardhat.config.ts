@@ -1,29 +1,36 @@
-import * as dotenv from "dotenv"
-import type { HttpNetworkUserConfig } from "hardhat/types"
+
 import { HardhatUserConfig } from "hardhat/config"
 import "@nomicfoundation/hardhat-toolbox"
 import "@nomicfoundation/hardhat-verify"
 import "@nomicfoundation/hardhat-ethers"
+import 'hardhat-gas-reporter'
 
-import "./tasks/deploy-all-mastercopies"
-import "./tasks/deploy-mastercopy"
-import "./tasks/extract-mastercopy"
-import "./tasks/setup"
-import "./tasks/verify-all-mastercopies"
+import dotenv from 'dotenv'
+import { HttpNetworkUserConfig } from 'hardhat/types'
 
 dotenv.config()
 
-const sharedNetworkConfig: HttpNetworkUserConfig = {}
-if (process.env.PRIVATE_KEY) {
-  sharedNetworkConfig.accounts = [process.env.PRIVATE_KEY]
+import "./tasks/reconstruct-mastercopy"
+import "./tasks/extract-mastercopy"
+import "./tasks/deploy-mastercopies"
+import "./tasks/deploy-mastercopy"
+import "./tasks/verify-mastercopies"
+import "./tasks/verify-mastercopy"
+
+const { MNEMONIC } = process.env
+
+const sharedNetworkConfig: HttpNetworkUserConfig = {
+  accounts: {
+    mnemonic: MNEMONIC || "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat",
+  },
 }
 
 const config: HardhatUserConfig = {
   paths: {
     artifacts: "build/artifacts",
     cache: "build/cache",
-    deploy: "deploy/raw", // normal deployment
     sources: "contracts",
+    // deploy: "deploy/raw", // normal deployment
   },
   solidity: {
     compilers: [{ version: "0.8.20" }, { version: "0.8.15" }, { version: "0.8.0" }],
@@ -34,15 +41,14 @@ const config: HardhatUserConfig = {
       blockGasLimit: 100000000,
       gas: 100000000,
     },
+    mainnet: {
+      ...sharedNetworkConfig,
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+    },
     sepolia: {
       ...sharedNetworkConfig,
       url: `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
     },
-  },
-  namedAccounts: {
-    deployer: 0,
-    dependenciesDeployer: 1,
-    tester: 2,
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
