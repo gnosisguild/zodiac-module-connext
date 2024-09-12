@@ -3,6 +3,7 @@ import { task } from "hardhat/config"
 import { writeMastercopyFromBuild } from "@gnosis-guild/zodiac-core"
 
 import packageJson from "../package.json"
+import { ZeroAddress } from "ethers"
 
 const AddressOne = "0x0000000000000000000000000000000000000001"
 
@@ -14,8 +15,8 @@ task("extract:mastercopy", "Extracts and persists current mastercopy build artif
       sourceName: "contracts/ConnextModule.sol",
     }),
     constructorArgs: {
-      types: ["address", "address", "address", "uint256", "uint256"],
-      values: [AddressOne, AddressOne, AddressOne, 0, 0],
+      types: ["address", "address", "address", "address", "uint32", "address"],
+      values: [AddressOne, AddressOne, AddressOne, AddressOne, ZeroAddress, AddressOne],
     },
     salt: "0x0000000000000000000000000000000000000000000000000000000000000000",
   })

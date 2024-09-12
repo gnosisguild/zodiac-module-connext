@@ -10,7 +10,6 @@ import { HttpNetworkUserConfig } from 'hardhat/types'
 
 dotenv.config()
 
-import "./tasks/reconstruct-mastercopy"
 import "./tasks/extract-mastercopy"
 import "./tasks/deploy-mastercopies"
 import "./tasks/deploy-mastercopy"
@@ -30,7 +29,6 @@ const config: HardhatUserConfig = {
     artifacts: "build/artifacts",
     cache: "build/cache",
     sources: "contracts",
-    // deploy: "deploy/raw", // normal deployment
   },
   solidity: {
     compilers: [{ version: "0.8.20" }, { version: "0.8.15" }, { version: "0.8.0" }],

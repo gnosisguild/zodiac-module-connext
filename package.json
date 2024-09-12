@@ -1,6 +1,6 @@
 {
   "name": "zodiac-module-connext",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A module for controlling safes via connext.",
   "repository": {
     "type": "git",
@@ -9,7 +9,6 @@
   "scripts": {
     "build": "hardhat compile",
     "coverage": "hardhat coverage",
-    "reconstruct:mastercopy": "yarn run build && yarn hardhat reconstruct:mastercopy --network",
     "extract:mastercopy": "yarn run build && yarn hardhat extract:mastercopy",
     "deploy:mastercopies": "yarn hardhat deploy:mastercopies --network",
     "deploy:mastercopy": "yarn hardhat deploy:mastercopy --network",
