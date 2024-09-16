@@ -1,10 +1,8 @@
-import "hardhat-deploy"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
-import "@nomiclabs/hardhat-ethers"
 import { task, types } from "hardhat/config"
-import { deployAndSetUpCustomModule } from "@gnosis.pm/zodiac"
-import { deployModuleFactory } from "@gnosis.pm/zodiac/dist/src/factory/deployModuleFactory"
-import { deployMastercopy } from "@gnosis.pm/zodiac/dist/src/factory/mastercopyDeployer"
+import "@nomicfoundation/hardhat-ethers"
+
+import { encodeDeployProxy, readMastercopyArtifact, predictProxyAddress } from "@gnosis-guild/zodiac-core"
 
 interface FactoryTaskArgs {
   proxied: boolean
@@ -19,8 +17,6 @@ interface ConnextModuleTaskArgs extends FactoryTaskArgs {
   connext: string
 }
 
-const firstAddress = "0x0000000000000000000000000000000000000001"
-
 const deployConnextModule = async (taskArgs: ConnextModuleTaskArgs, hre: HardhatRuntimeEnvironment) => {
   if (taskArgs.proxied) {
     await deployConnextModuleProxy(taskArgs, hre)
@@ -29,10 +25,7 @@ const deployConnextModule = async (taskArgs: ConnextModuleTaskArgs, hre: Hardhat
   }
 }
 
-const deployConnextModuleFull = async (
-  taskArgs: ConnextModuleTaskArgs,
-  { ethers, deployments, getNamedAccounts }: HardhatRuntimeEnvironment,
-) => {
+const deployConnextModuleFull = async (taskArgs: ConnextModuleTaskArgs, { ethers }: HardhatRuntimeEnvironment) => {
   console.log("Deploying Connext Module")
   const ConnextModule = await ethers.getContractFactory("ConnextModule")
   const connextModule = await ConnextModule.deploy(
@@ -43,39 +36,32 @@ const deployConnextModuleFull = async (
     taskArgs.origin,
     taskArgs.connext,
   )
-  console.log("Connext Module deployed to:", connextModule.address)
+  const connextModAddress = await connextModule.getAddress()
+  console.log("Connext Module deployed to:", connextModAddress)
 }
 
 const deployConnextModuleProxy = async (taskArgs: ConnextModuleTaskArgs, hre: HardhatRuntimeEnvironment) => {
   console.log("Deploying Connext Module Proxy")
-  const { deployer } = await hre.getNamedAccounts()
-  const deployerSigner = await hre.ethers.getSigner(deployer)
-
-  const mastercopy = await deployConnextModuleMasterCopy(hre)
-  const chainId = await hre.getChainId()
-  const artifact = await hre.artifacts.readArtifact("ConnextModule")
-
-  const factory = await deployModuleFactory(hre)
-
-  const { transaction } = await deployAndSetUpCustomModule(
+  const [signer] = await hre.ethers.getSigners()
+  const nonce = await signer.getNonce()
+  console.log("Using the account:", signer.address)
+  const masterCopyArtifact = await readMastercopyArtifact({
+    contractName: "ConnextModule",
+  })
+  const mastercopy = masterCopyArtifact.address
+  const setupArgs = {
+    types: ["address", "address", "address", "address", "uint32", "address"],
+    values: [taskArgs.owner, taskArgs.avatar, taskArgs.target, taskArgs.sender, taskArgs.origin, taskArgs.connext],
+  }
+  const transaction = encodeDeployProxy({
     mastercopy,
-    artifact.abi,
-    {
-      types: ["address", "address", "address", "address", "uint32", "address"],
-      values: [taskArgs.owner, taskArgs.avatar, taskArgs.target, taskArgs.sender, taskArgs.origin, taskArgs.connext],
-    },
-    hre.ethers.provider,
-    Number(chainId),
-    Date.now().toString(),
-  )
-
-  // Should be able to remove this line in future, waiting on a fix in the Zodiac repo
-  transaction.to = factory
-
-  const deploymentTransaction = await deployerSigner.sendTransaction(transaction)
-  const receipt = await deploymentTransaction.wait()
-  const connextModuleProxyAddress = receipt.logs[1].address
-  console.log("Proxy deployed to:      ", connextModuleProxyAddress)
+    setupArgs,
+    saltNonce: nonce,
+  })
+  const deploymentTransaction = await signer.sendTransaction(transaction)
+  await deploymentTransaction.wait()
+  console.log("Connext module proxy deployed to:", predictProxyAddress({ mastercopy, setupArgs, saltNonce: nonce }))
+  return
 }
 
 task("setup", "deploy a Connext Module")
@@ -92,20 +78,5 @@ task("setup", "deploy a Connext Module")
   .addParam("connext", "Address of the connext contract that will call this contract", undefined, types.string)
   .addParam("proxied", "Deploy module through proxy", false, types.boolean)
   .setAction(deployConnextModule)
-
-const deployConnextModuleMasterCopy = async (hre: HardhatRuntimeEnvironment) => {
-  const ConnextModule = await hre.ethers.getContractFactory("ConnextModule")
-  const mastercopy = await deployMastercopy(hre, ConnextModule, [
-    firstAddress,
-    firstAddress,
-    firstAddress,
-    firstAddress,
-    0,
-    firstAddress,
-  ])
-  console.log("ConnextModule mastercopy deployed to:", mastercopy)
-  return mastercopy
-}
-task("deployMasterCopy", "Deploys the mastercopy of the connext module").setAction(deployConnextModuleMasterCopy)
 
 export {}

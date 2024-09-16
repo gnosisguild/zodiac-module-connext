@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity ^0.8.15;
 
-import "@gnosis.pm/zodiac/contracts/core/Module.sol";
+import "@gnosis-guild/zodiac-core/contracts/core/Module.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IXReceiver} from "./interfaces/IXReceiver.sol";
 
 contract ConnextModule is Module, IXReceiver {
     using SafeERC20 for IERC20;
-    
+
     event ModuleSetUp(
         address owner,
         address avatar,
@@ -54,7 +54,6 @@ contract ConnextModule is Module, IXReceiver {
     /// @param initializeParams ABI encoded initialization params, in the same order as the parameters for this contract's constructor.
     /// @notice Only callable once.
     function setUp(bytes memory initializeParams) public override initializer {
-        __Ownable_init();
         (
             address _owner,
             address _avatar,
@@ -64,12 +63,16 @@ contract ConnextModule is Module, IXReceiver {
             address _connext
         ) = abi.decode(initializeParams, (address, address, address, address, uint32, address));
 
+        require(_avatar != address(0), "Avatar can not be zero address");
+        require(_target != address(0), "Target can not be zero address");
+
+        __Ownable_init(msg.sender);
         setAvatar(_avatar);
         setTarget(_target);
         setOriginSender(_originSender);
         setOrigin(_origin);
         setConnext(_connext);
-        transferOwnership(_owner);
+        _transferOwnership(_owner);
 
         emit ModuleSetUp(owner(), avatar, target, originSender, origin, connext);
     }
@@ -98,9 +101,7 @@ contract ConnextModule is Module, IXReceiver {
         address _originSender,
         uint32 _origin,
         bytes memory _callData
-    ) 
-        external override onlyConnext(_originSender, _origin)
-        returns (bytes memory) {
+    ) external override onlyConnext(_originSender, _origin) returns (bytes memory) {
         // Decode message
         (address _to, uint256 _value, bytes memory _data, Enum.Operation _operation) = abi.decode(
             _callData,
@@ -109,11 +110,11 @@ contract ConnextModule is Module, IXReceiver {
 
         // Approve token transfer if tokens were passed in
         IERC20 _token = IERC20(_asset);
-        if(_amount > 0) _token.safeTransfer(avatar, _amount);
+        if (_amount > 0) _token.safeTransfer(avatar, _amount);
 
         // Execute transaction against target
         (bool success, bytes memory returnData) = execAndReturnData(_to, _value, _data, _operation);
-        if(!success) revert ModuleTransactionFailed();
+        if (!success) revert ModuleTransactionFailed();
         return returnData;
     }
 
